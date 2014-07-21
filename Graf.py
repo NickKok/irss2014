@@ -11,7 +11,7 @@ import random
 #read files
 f = open('Scenes.csv')
 file = open('Scenes.csv')
-minNumOfAnnotators=3
+minNumOfAnnotators=4
 
     #create lists to read the names of the Scenes
 Allusers=[]
@@ -44,7 +44,7 @@ users.sort()
 SumofAnnotation = np.zeros((len(Scenes),len(Scenes)))
 CountPlus=np.zeros((len(Scenes),len(Scenes)))
 CountMin=np.zeros((len(Scenes),len(Scenes)))
-
+groupAnnotation= np.zeros((len(Scenes),len(Scenes)))
 
     #create array that take the size of the user length
 for i in range(len(users)):
@@ -112,6 +112,7 @@ for i in range(len(Scenes)):
     nameswithcolor[i].append(random.choice(color))
 
 
+groupAnnotation= np.zeros((len(users),len(users)))
 
 np.save("SceneNames.npy"  , Scenes)
 with open('SceneNames.csv', 'w') as csvfile:
@@ -134,30 +135,30 @@ jsonfile.close()
 
 
 
-A=np.fliplr(depth[users.index("kokkinis")])[np.triu_indices(27)]
-B=np.fliplr(depth[users.index("nikos")])[np.triu_indices(27)]
-Nv=0
-Nu=0
-Nuv=0
-Muv=0
-N=0
+for k in users:
+    for x in users:
+        Nv=0
+        Nu=0
+        Nuv=0
+        Muv=0
+        N=0
+        if x!=k:
+            for i in range(len(Scenes)):
+                for j in range(len(Scenes)):
+                    if (depth[users.index(x)][i][j]>0 ):
+                        Nu+=depth[users.index(x)][i][j]
+                    if (depth[users.index(k)][i][j]>0 ):
+                        Nv+=depth[users.index(k)][i][j]
+                    if(depth[users.index(k)][i][j]!=0  and depth[users.index(x)][i][j]!=0  ):
+                        Nuv+=1
+                    if(( depth[users.index(k)][i][j]<0 and depth[users.index(x)][i][j]<0) or (depth[users.index(k)][i][j]>0 and depth[users.index(x)][i][j]>0)):
+                        Muv+=1
 
-for i in range(len(Scenes)):
-    for j in range(len(Scenes)):
-        if (depth[users.index("gorapis")][i][j]>0 ):
-            Nu+=depth[users.index("gorapis")][i][j]
-        if (depth[users.index("xristina")][i][j]>0 ):
-            Nv+=depth[users.index("xristina")][i][j]
-        if(depth[users.index("xristina")][i][j]!=0  and depth[users.index("gorapis")][i][j]!=0  ):
-            Nuv+=1
-        if(( depth[users.index("xristina")][i][j]<0 and depth[users.index("gorapis")][i][j]<0) or (depth[users.index("xristina")][i][j]>0 and depth[users.index("gorapis")][i][j]>0)):
-            Muv+=1
-
-
-print Nu/2
-print Nv/2
-print Nuv/2
-print Muv/2
+            print x,k
+            print Nu/2
+            print Nv/2
+            print Nuv/2
+            print Muv/2
 
 
 
