@@ -19,25 +19,29 @@ def lenTextInFiles(path):
           #print filesLength[a_file]=num_lines
   return filesLength
 
+def transforMatrix(fileNameText,fileNameGrund,grundMatrix):
+  newGrundTrustMatrix = []
+  if (len(fileNameText) != len(fileNameGrund)):
+    for i in range (len(fileNameText)):
+      cuttedFileName = os.path.basename(fileNameText[i]).split('.',1)[0]
+      for j in range(0,len(fileNameGrund)):
+        cuttedFileNameGTM =(fileNameGrund[j].split('/'))[4].split('.',1)[0]
+        if (cuttedFileName == cuttedFileNameGTM):
+          newGrundTrustMatrix.append(grundMatrix[j])
+  return numpy.array(newGrundTrustMatrix)
 
-"""
-cuttedFileName = os.path.basename(fileNames[i]).split('.',1)[0]
-    for j in range(0,len(filesGTM)):
-      cuttedFileNameGTM =(filesGTM[j].split('/'))[4].split('.',1)[0]
-      if (cuttedFileName == cuttedFileNameGTM):
-
-"""
-def comparematrix(folderName,coefficient =1.3):
+def comparematrix(folderName,coefficient =1.2):
   fileNames = cPickle.load(open(folderName+folderlsi + modellsi + '.filenames', 'rb'))
   SimilarityLSI = numpy.load(folderName + folderlsi+modellsi+'.npy')
   grundTrustMatrix = numpy.load(folderName + "gtm/AverageAnnotation.npy")
   filesGTM = numpy.load(folderName + "gtm/SceneNames.npy")
   lenTextinFiles = lenTextInFiles(folderName)
+  grundTrustMatrix = transforMatrix(fileNames,filesGTM,grundTrustMatrix)
   recall = []
   precision = []
   for i in range(0,len(fileNames)):
     gtm=evaluateGTM(grundTrustMatrix[i],coefficient)
-    sm=evaluateSMRandom(SimilarityLSI[i],coefficient)
+    sm=evaluateSM(SimilarityLSI[i],coefficient)
     similarity = numpy.intersect1d(gtm,sm)
     if len(gtm)!= 0 :
       recall.append(float(len(similarity))/float(len(gtm)))
@@ -59,6 +63,7 @@ def comparematrix(folderName,coefficient =1.3):
   print numpy.mean(recall)
   print "Mean of precision"
   print numpy.mean(precision)
+
 
 def debugprint (gtm,sm,similarity,fileLength,recall,precision,fileNames,similarityLSI,grundTrustMatrix,fileGMT):
     print " GTM row : "
@@ -132,7 +137,6 @@ def evaluateSMRandom(row,coef):
   """
   for i in range(0,int(T_value)):
     result.append(random_index[i])
-  print result
   return numpy.array(result)
 
 if __name__ == '__main__':
