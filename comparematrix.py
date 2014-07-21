@@ -19,6 +19,14 @@ def lenTextInFiles(path):
           #print filesLength[a_file]=num_lines
   return filesLength
 
+
+"""
+cuttedFileName = os.path.basename(fileNames[i]).split('.',1)[0]
+    for j in range(0,len(filesGTM)):
+      cuttedFileNameGTM =(filesGTM[j].split('/'))[4].split('.',1)[0]
+      if (cuttedFileName == cuttedFileNameGTM):
+
+"""
 def comparematrix(folderName,coefficient =1.3):
   fileNames = cPickle.load(open(folderName+folderlsi + modellsi + '.filenames', 'rb'))
   SimilarityLSI = numpy.load(folderName + folderlsi+modellsi+'.npy')
@@ -28,22 +36,18 @@ def comparematrix(folderName,coefficient =1.3):
   recall = []
   precision = []
   for i in range(0,len(fileNames)):
-    cuttedFileName = os.path.basename(fileNames[i]).split('.',1)[0]
-    for j in range(0,len(filesGTM)):
-      cuttedFileNameGTM =(filesGTM[j].split('/'))[4].split('.',1)[0]
-      if (cuttedFileName == cuttedFileNameGTM):
-        gtm=evaluateGTM(grundTrustMatrix[j],coefficient)
-        sm=evaluateSMRandom(SimilarityLSI[i],coefficient)
-        similarity = numpy.intersect1d(gtm,sm)
-        if len(gtm)!= 0 :
-          recall.append(float(len(similarity))/float(len(gtm)))
-        else :
-          recall.append(0)
-        if len(sm)!= 0 :
-          precision.append(float(len(similarity))/float(len(sm)))
-        else :
-          precision.append(0)
-        debugprint(gtm,sm,similarity,lenTextinFiles, recall[i],precision[i],fileNames[i],SimilarityLSI[i],grundTrustMatrix[j],filesGTM[j])
+    gtm=evaluateGTM(grundTrustMatrix[i],coefficient)
+    sm=evaluateSMRandom(SimilarityLSI[i],coefficient)
+    similarity = numpy.intersect1d(gtm,sm)
+    if len(gtm)!= 0 :
+      recall.append(float(len(similarity))/float(len(gtm)))
+    else :
+      recall.append(0)
+    if len(sm)!= 0 :
+      precision.append(float(len(similarity))/float(len(sm)))
+    else :
+      precision.append(0)
+    debugprint(gtm,sm,similarity,lenTextinFiles, recall[i],precision[i],fileNames[i],SimilarityLSI[i],grundTrustMatrix[i],filesGTM[i])
 
   recall = numpy.array(recall)
   precision = numpy.array(precision)
@@ -120,7 +124,7 @@ def evaluateSM(row,coef):
 
 def evaluateSMRandom(row,coef):
   random_index = numpy.random.permutation(len(row))
-  T_value = 6x
+  T_value = 4
   result =[]
   """
   for val in range(0,len(row)):
