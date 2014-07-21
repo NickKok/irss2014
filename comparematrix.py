@@ -28,7 +28,9 @@ def transforMatrix(fileNameText,fileNameGrund,grundMatrix):
         cuttedFileNameGTM =(fileNameGrund[j].split('/'))[4].split('.',1)[0]
         if (cuttedFileName == cuttedFileNameGTM):
           newGrundTrustMatrix.append(grundMatrix[j])
-  return numpy.array(newGrundTrustMatrix)
+    return numpy.array(newGrundTrustMatrix)
+  else:
+    return grundMatrix
 
 def comparematrix(folderName,coefficient =1.2):
   fileNames = cPickle.load(open(folderName+folderlsi + modellsi + '.filenames', 'rb'))
@@ -129,7 +131,7 @@ def evaluateSM(row,coef):
 
 def evaluateSMRandom(row,coef):
   random_index = numpy.random.permutation(len(row))
-  T_value = 4
+  T_value = 5
   result =[]
   """
   for val in range(0,len(row)):
