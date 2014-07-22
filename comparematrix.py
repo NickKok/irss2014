@@ -21,13 +21,21 @@ def lenTextInFiles(path):
 
 def transforMatrix(fileNameText,fileNameGrund,grundMatrix):
   newGrundTrustMatrix = []
+  saveIndex = []
   if (len(fileNameText) != len(fileNameGrund)):
     for i in range (len(fileNameText)):
       cuttedFileName = os.path.basename(fileNameText[i]).split('.',1)[0]
       for j in range(0,len(fileNameGrund)):
         cuttedFileNameGTM =(fileNameGrund[j].split('/'))[4].split('.',1)[0]
         if (cuttedFileName == cuttedFileNameGTM):
-          newGrundTrustMatrix.append(grundMatrix[j])
+          saveIndex.append(j)
+    for k in range(0,len(saveIndex)):
+      row = grundMatrix[saveIndex[k]]
+      newrow = []
+      for l in range(0,len(saveIndex)):
+        newrow.append(row[saveIndex[l]])
+      newGrundTrustMatrix.append(newrow)
+
     return numpy.array(newGrundTrustMatrix)
   else:
     return grundMatrix
@@ -38,7 +46,7 @@ def comparematrix(folderName,coefficient =1.2):
   grundTrustMatrix = numpy.load(folderName + "gtm/AverageAnnotation.npy")
   filesGTM = numpy.load(folderName + "gtm/SceneNames.npy")
   lenTextinFiles = lenTextInFiles(folderName)
-  grundTrustMatrix = transforMatrix(fileNames,filesGTM,grundTrustMatrix)
+  #newgrundTrustMatrix = transforMatrix(fileNames,filesGTM,grundTrustMatrix)
   recall = []
   precision = []
   for i in range(0,len(fileNames)):

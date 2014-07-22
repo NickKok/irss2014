@@ -1,14 +1,14 @@
 import sys
 import cPickle
-import csv
-import helpfunction, visualization
+import helpfunction
 import os
-import numpy
-from os.path import basename
 from nltk import PorterStemmer
 import nltk.tokenize
 from gensim import corpora, models, similarities
 import gensim
+from os.path import basename
+import tf_idf
+import numpy, csv
 
 
 reload(sys)
@@ -19,9 +19,8 @@ import logging
 logging.basicConfig(format='%(message)s', level=logging.INFO)
 
 modellsi = "movielsi"
-modellda = "movielda"
-folderlsi= "lsi/"
-folderlda= "lda/"
+folderlsi = "lsi/"
+
 
 stopList = ["a", "about", "above", "above", "across", "after", "afterwards", "again", "against", "all", "almost",
             "alone", "along", "already", "also", "although", "always", "am", "among", "amongst", "amoungst", "amount",
@@ -54,7 +53,7 @@ stopList = ["a", "about", "above", "above", "across", "after", "afterwards", "ag
 
 
 def readTextFile(fileName):
-  print fileName
+  #print fileName
   with open(fileName, "r") as myfile:
     data = myfile.read().replace('\n', ' ').decode('utf-8')
   return data
@@ -81,8 +80,8 @@ def readTextDirWithBounds(dirName):
     files.sort()
     for f in files:  # for each file in the given directory:
       if f.endswith(".txt"):
-        with open(dirName + os.sep + f,"r") as testfile:
-           num_lines = sum(1 for line in testfile)
+        with open(dirName + os.sep + f, "r") as testfile:
+          num_lines = sum(1 for line in testfile)
         if num_lines > 3:
           fi = dirName + os.sep + f  # update the list of files analyzed:
           fileNames.append(fi)
@@ -106,6 +105,7 @@ def postProcessTexts(texts):
     newTexts.append(curT)
   return newTexts
 
+
 def LSI(T2, folderName, modelName, fileNames):
   folderName = folderName + folderlsi
   helpfunction.ensure_dir(folderName)
@@ -115,7 +115,8 @@ def LSI(T2, folderName, modelName, fileNames):
   corpus = corpora.MmCorpus(folderName + modelName + '.mm')
   tfidf = models.TfidfModel(corpus)
 
-  lsi = models.LsiModel(tfidf[corpus], num_topics=len(fileNames), id2word=dictionary, chunksize=100, onepass=True, power_iters=2, extra_samples=100)
+  lsi = models.LsiModel(tfidf[corpus], num_topics=len(fileNames), id2word=dictionary, chunksize=100, onepass=True,
+                        power_iters=2, extra_samples=100)
   indexLSI = similarities.MatrixSimilarity(lsi[tfidf[corpus]])
   index = similarities.MatrixSimilarity(tfidf[corpus])
 
@@ -126,97 +127,51 @@ def LSI(T2, folderName, modelName, fileNames):
   tfidf.save(folderName + modelName + '.tfidf')
   lsi.save(folderName + modelName + '.lsi')
 
+def similarityLSI(folderName,text):
+  folderName = folderName + folderlsi
+  modelName = modellsi
+  dictionary = corpora.Dictionary.load(folderName + modelName + '.dict')
+  index = similarities.MatrixSimilarity.load(folderName + modelName + '.index')
+  indexLSI = similarities.MatrixSimilarity.load(folderName + modelName + '.indexLSI')
+  fileNames = cPickle.load(open(folderName + modelName + '.filenames', 'rb'))
+  tfidf = gensim.models.tfidfmodel.TfidfModel.load(folderName + modelName + '.tfidf');
+  lsi = gensim.models.lsimodel.LsiModel.load(folderName + modelName + '.lsi')
 
-def LDA(T2, folderName, modelName, fileNames):
-  folderName = folderName + folderlda
-  helpfunction.ensure_dir(folderName)
-  dictionary = corpora.Dictionary(T2)
-  corpus = [dictionary.doc2bow(text) for text in T2]
-  corpora.MmCorpus.serialize(folderName + modelName + '.mm', corpus)
-  corpus = corpora.MmCorpus(folderName + modelName + '.mm')
+  names = []
+  Similarity = numpy.zeros((len(index), len(index)))
+  for i, s in enumerate(index):
+    curArray = numpy.array(s);
+    curArray[i] = 0.0;
+    #Similarity[i, :] = curArray / numpy.max(curArray)
+    Similarity[i, :] = curArray
+    names.append(basename(fileNames[i]))
 
-  lda = models.LdaModel(corpus, num_topics=len(fileNames), id2word=dictionary, update_every=1, chunksize=100, passes=1)
-  indexLDA = similarities.MatrixSimilarity(lda[corpus])
-  index = similarities.MatrixSimilarity(corpus)
+  with open(folderName + modellsi + '.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile)
+    [writer.writerow(r) for r in Similarity.tolist()]
+  numpy.save(folderName + modellsi + '.npy', Similarity)
+  """
+  tfidf = tf_idf.tfidf()
+  for i in range(0,len(fileNames)):
+    tfidf.addDocument(fileNames[i],text[i])
 
-  dictionary.save(folderName + modelName + '.dict')
-  index.save(folderName + modelName + '.index')
-  indexLDA.save(folderName + modelName + '.indexLDA')
-  cPickle.dump(fileNames, open(folderName + modelName + '.filenames', 'wb'))
-  lda.save(folderName + modelName + '.lda')
+  for j in range(0,len(fileNames)):
+    print str((tfidf.similarities(text[7]))[j][1]) + " ----- " + str((Similarity[7])[j])
 
-
+  print fileNames[7]
+  """
+  
 def buildSearchIndex(folderName):
   T, fileNames = readTextDir(folderName)
   T2 = postProcessTexts(T)
-  LDA(T2, folderName, modellda, fileNames)
-  LSI(T2, folderName, modellsi , fileNames)
-
-
-def similarityLSI(folderName):
-    folderName = folderName+folderlsi
-    modelName=modellsi
-    dictionary = corpora.Dictionary.load(folderName + modelName + '.dict')
-    index = similarities.MatrixSimilarity.load(folderName + modelName + '.index')
-    indexLSI = similarities.MatrixSimilarity.load(folderName + modelName + '.indexLSI')
-    fileNames = cPickle.load(open(folderName + modelName + '.filenames', 'rb'))
-    tfidf = gensim.models.tfidfmodel.TfidfModel.load(folderName + modelName + '.tfidf');
-    lsi = gensim.models.lsimodel.LsiModel.load(folderName + modelName + '.lsi')
-
-    names = []
-    Similarity = numpy.zeros((len(index), len(index)))
-    for i, s in enumerate(index):
-      curArray = numpy.array(s);
-      curArray[i] = 0.0;
-      Similarity[i, :] = curArray / numpy.max(curArray)
-      names.append(basename(fileNames[i]))
-
-    with open(folderName + modellsi+'.csv', 'w') as csvfile:
-      writer = csv.writer(csvfile)
-      [writer.writerow(r) for r in Similarity.tolist()]
-
-    numpy.savez(folderName + modellsi, Similarity = Similarity, fileNames = fileNames)
-    numpy.save(folderName + modellsi+'.npy',Similarity)
-
-def similarityLDA(folderName):
-    folderName = folderName+folderlda
-    modelName=modellda
-    dictionary = corpora.Dictionary.load(folderName + modelName + '.dict')
-    index = similarities.MatrixSimilarity.load(folderName + modelName + '.index')
-    indexLSI = similarities.MatrixSimilarity.load(folderName + modelName + '.indexLDA')
-    fileNames = cPickle.load(open(folderName + modelName + '.filenames', 'rb'))
-    lda = gensim.models.ldamodel.LdaModel.load(folderName + modelName + '.lda')
-
-    names = []
-    Similarity = numpy.zeros((len(index), len(index)))
-    for i, s in enumerate(index):
-      curArray = numpy.array(s);
-      curArray[i] = 0.0;
-      Similarity[i, :] = curArray / numpy.max(curArray)
-      names.append(basename(fileNames[i]))
-
-    with open(folderName + modellda+'.csv', 'w') as csvfile:
-      writer = csv.writer(csvfile)
-      [writer.writerow(r) for r in Similarity.tolist()]
-    numpy.savez(folderName + modellda, Similarity = Similarity, fileNames = fileNames)
-    numpy.save(folderName + modellda+'.npy',Similarity)
-
+  LSI(T2, folderName, modellsi, fileNames)
+  similarityLSI(folderName,T2)
 
 if __name__ == '__main__':
 
   if sys.argv[1] == "-train":
     buildSearchIndex(sys.argv[2])
 
-
-  if sys.argv[1] == "-similarityLSI":
-    folderName = sys.argv[2]
-    similarityLSI(folderName)
-
-  if sys.argv[1] == "-similarityLDA":
-    folderName = sys.argv[2]
-    similarityLDA(folderName)
-
   if sys.argv[1] == "-similarity":
     folderName = sys.argv[2]
     similarityLSI(folderName)
-    similarityLDA(folderName)
