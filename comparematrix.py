@@ -2,9 +2,7 @@ import cPickle
 import os, sys , numpy
 
 modellsi = "movielsi"
-modellda = "movielda"
 folderlsi= "lsi/"
-folderlda= "lda/"
 
 
 def lenTextInFiles(path):
@@ -149,8 +147,29 @@ def evaluateSMRandom(row,coef):
     result.append(random_index[i])
   return numpy.array(result)
 
+
+def evaluteMetric30per(row1, row2 , k=3):
+  indexofMatrix = row2.argsort()[-3:]
+  x=int(len(row1)/3)
+  indexGTM = row1.argsort()[-x:]
+  similarity = numpy.intersect1d(gtm,sm)
+
+def comparematrix30metric (folderName):
+  fileNames = cPickle.load(open(folderName+folderlsi + modellsi + '.filenames', 'rb'))
+  SimilarityLSI = numpy.load(folderName + folderlsi+modellsi+'.npy')
+  grundTrustMatrix = numpy.load(folderName + "gtm/AverageAnnotation.npy")
+  filesGTM = numpy.load(folderName + "gtm/SceneNames.npy")
+  lenTextinFiles = lenTextInFiles(folderName)
+  for i in range(0,len(fileNames)):
+    evaluteMetric30per(grundTrustMatrix[i],SimilarityLSI[i])
+    #similarity =
+
 if __name__ == '__main__':
 
   if sys.argv[1] == "-compareMatrix":
     folderName = sys.argv[2]
     comparematrix(folderName)
+
+  if sys.argv[1] == "-compareMatrix2":
+    folderName = sys.argv[2]
+    comparematrix30metric(folderName)

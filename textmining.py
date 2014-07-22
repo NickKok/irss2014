@@ -160,7 +160,7 @@ def similarityLSI(folderName,text):
 
   print fileNames[7]
   """
-  
+
 def buildSearchIndex(folderName):
   T, fileNames = readTextDir(folderName)
   T2 = postProcessTexts(T)
