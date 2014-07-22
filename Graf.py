@@ -11,8 +11,8 @@ import random
 #read files
 f = open('Scenes.csv')
 file = open('Scenes.csv')
-minNumOfAnnotators=4
-
+minNumOfAnnotators=3
+MinnnotationPerUser=5
     #create lists to read the names of the Scenes
 Allusers=[]
 all=[]
@@ -33,12 +33,16 @@ for row in reader:
         d.append(row[4])
 
 
+
+
     #concate the lists
 all= b+c+d
 Scenes=list(set(all))
 Scenes.sort()
 users=list(set(Allusers))
 users.sort()
+
+
 
     #create 3 lists numpy
 SumofAnnotation = np.zeros((len(Scenes),len(Scenes)))
@@ -64,6 +68,37 @@ for row in reader:    # generate user-speficic similarity matrices:
          depth[users.index(row[1])][Scenes.index(row[4])][Scenes.index(row[2])]-=1
 
 
+groupAnnotation= np.zeros((len(users),len(users)))
+for k in range(len(users)):
+    for x in range(len(users)):
+            print "k,x", k, x
+            if(k!=x):
+              Nv=0
+              Nu=0
+              Nuv=0
+              Muv=0
+              for i in range(len(Scenes)):
+                  for j in range(len(Scenes)):
+
+                      if(i!=j):
+                        if(depth[k][i][j]!=0):
+                              Nu+=1
+                        if(depth[x][i][j]!=0):
+                            Nv+=1
+                        if(depth[k][i][j]!=0  and depth[x][i][j]!=0):
+                          Nuv+=1
+                        if((depth[k][i][j]>0  and depth[x][i][j]>0) or (depth[k][i][j]<0  and depth[x][i][j]<0)):
+                          Muv+=1
+              print Nv/2,Nu/2
+              print Nuv/22,Muv/2
+              print ((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
+              groupAnnotation[k][x]=((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
+
+
+np.save("GroupAnnotation.npy"  ,  groupAnnotation)
+with open("GroupAnnotation.csv", 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        [writer.writerow(r) for r in   groupAnnotation.tolist()]
 
     #count the positive and the negative values
 for i in range(len(users)):
@@ -112,7 +147,7 @@ for i in range(len(Scenes)):
     nameswithcolor[i].append(random.choice(color))
 
 
-groupAnnotation= np.zeros((len(users),len(users)))
+
 
 np.save("SceneNames.npy"  , Scenes)
 with open('SceneNames.csv', 'w') as csvfile:
@@ -131,38 +166,6 @@ json=json.dumps(SumofAnnotation.tolist())
 jsonfile=open("AverageAnnotationNormalized.json","w")
 jsonfile.write(json)
 jsonfile.close()
-
-
-
-
-for k in users:
-    for x in users:
-        Nv=0
-        Nu=0
-        Nuv=0
-        Muv=0
-        N=0
-        if x!=k:
-            for i in range(len(Scenes)):
-                for j in range(len(Scenes)):
-                    if (depth[users.index(x)][i][j]>0 ):
-                        Nu+=depth[users.index(x)][i][j]
-                    if (depth[users.index(k)][i][j]>0 ):
-                        Nv+=depth[users.index(k)][i][j]
-                    if(depth[users.index(k)][i][j]!=0  and depth[users.index(x)][i][j]!=0  ):
-                        Nuv+=1
-                    if(( depth[users.index(k)][i][j]<0 and depth[users.index(x)][i][j]<0) or (depth[users.index(k)][i][j]>0 and depth[users.index(x)][i][j]>0)):
-                        Muv+=1
-
-            print x,k
-            print Nu/2
-            print Nv/2
-            print Nuv/2
-            print Muv/2
-
-
-
-
 
 
 
