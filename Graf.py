@@ -7,6 +7,27 @@ import StringIO
 import json
 from tempfile import TemporaryFile
 import random
+import mlpy
+import sys
+import matplotlib.pyplot as plt
+
+
+def clustering (depth,matrix, numCL):
+  groupsOfUsers=[]
+
+  cls, means, steps = mlpy.kmeans(matrix, k=numCL, plus=True)
+  print cls
+  for i in range(len(numCL)):
+      groupsOfUsers.append(np.zeros((27,27)))
+  for i in range(len(cls)):
+        groupsOfUsers[cls[i]]+=depth[i]
+  for i in range(len(numCL)):
+        np.save("groupOfUsers%02d.npy" % i , groupsOfUsers[i])
+        with open("groupOfUsers%02d.csv" % i, 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in   groupsOfUsers[i].tolist()]
+
+
 
 #read files
 f = open('Scenes.csv')
@@ -44,11 +65,18 @@ users.sort()
 
 
 
+
+
+
+
+
+
+
     #create 3 lists numpy
 SumofAnnotation = np.zeros((len(Scenes),len(Scenes)))
 CountPlus=np.zeros((len(Scenes),len(Scenes)))
 CountMin=np.zeros((len(Scenes),len(Scenes)))
-groupAnnotation= np.zeros((len(Scenes),len(Scenes)))
+
 
     #create array that take the size of the user length
 for i in range(len(users)):
@@ -71,7 +99,6 @@ for row in reader:    # generate user-speficic similarity matrices:
 groupAnnotation= np.zeros((len(users),len(users)))
 for k in range(len(users)):
     for x in range(len(users)):
-            print "k,x", k, x
             if(k!=x):
               Nv=0
               Nu=0
@@ -89,9 +116,6 @@ for k in range(len(users)):
                           Nuv+=1
                         if((depth[k][i][j]>0  and depth[x][i][j]>0) or (depth[k][i][j]<0  and depth[x][i][j]<0)):
                           Muv+=1
-              print Nv/2,Nu/2
-              print Nuv/22,Muv/2
-              print ((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
               groupAnnotation[k][x]=((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
 
 
@@ -99,6 +123,9 @@ np.save("GroupAnnotation.npy"  ,  groupAnnotation)
 with open("GroupAnnotation.csv", 'w') as csvfile:
         writer = csv.writer(csvfile)
         [writer.writerow(r) for r in   groupAnnotation.tolist()]
+
+
+clustering(depth,groupAnnotation,3)
 
     #count the positive and the negative values
 for i in range(len(users)):
@@ -173,6 +200,9 @@ np.save('Agreement.npy', Agreement)
 with open('Agreement.csv', 'w') as csvfile:
           writer = csv.writer(csvfile)
           [writer.writerow(r) for r in Agreement.tolist()]
+
+
+
 
 
 Agr = np.load("Agreement.npy");
