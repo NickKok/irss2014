@@ -150,6 +150,7 @@ def similarityLSI(folderName,text):
     writer = csv.writer(csvfile)
     [writer.writerow(r) for r in Similarity.tolist()]
   numpy.save(folderName + modellsi + '.npy', Similarity)
+
   """
   tfidf = tf_idf.tfidf()
   for i in range(0,len(fileNames)):
