@@ -67,7 +67,7 @@ def comparematrix(folderName,coefficient =1.2):
   """
     #lenTextinFiles = lenTextInFiles(folderName)
     #newgrundTrustMatrix = transforMatrix(fileNames,filesGTM,grundTrustMatrix)
-  
+
     if len(gtm)!= 0 and len(sm) !=0 and len(similarity) !=0 :
       recall.append(float(len(similarity))/float(len(gtm)))
       precision.append(float(len(similarity))/float(len(sm)))
