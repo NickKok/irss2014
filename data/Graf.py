@@ -17,11 +17,11 @@ def clustering (depth,matrix, numCL):
 
   cls, means, steps = mlpy.kmeans(matrix, k=numCL, plus=True)
   print cls
-  for i in range(len(numCL)):
+  for i in range(numCL):
       groupsOfUsers.append(np.zeros((27,27)))
   for i in range(len(cls)):
         groupsOfUsers[cls[i]]+=depth[i]
-  for i in range(len(numCL)):
+  for i in range(numCL):
         np.save("groupOfUsers%02d.npy" % i , groupsOfUsers[i])
         with open("groupOfUsers%02d.csv" % i, 'w') as csvfile:
             writer = csv.writer(csvfile)

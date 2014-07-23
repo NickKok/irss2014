@@ -35,15 +35,3 @@ if __name__ == '__main__':
   array = getsample(path,filename)
   print len(array[0])
   clustering(array)
-
-  """
-  numpy.random.seed(0)
-  mean1, cov1, n1 = [1, 5], [[1,1],[1,2]], 200 # 200 points, mean=(1,5)
-  x1 = numpy.random.multivariate_normal(mean1, cov1, n1)
-  mean2, cov2, n2 = [2.5, 2.5], [[1,0],[0,1]], 300 # 300 points, mean=(2.5,2.5)
-  x2 = numpy.random.multivariate_normal(mean2, cov2, n2)
-  mean3, cov3, n3 = [5, 8], [[0.5,0],[0,0.5]], 200 # 200 points, mean=(5,8)
-  x3 = numpy.random.multivariate_normal(mean3, cov3, n3)
-  x = numpy.concatenate((x1, x2, x3), axis=0) # concatenate the samples
-  clustering(x)
-  """
