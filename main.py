@@ -1,13 +1,21 @@
 import numpy
 import matplotlib.pyplot as plt
+import os
 import mlpy
-import helpfunction
 import sys
 
-def clustering (matrix, k=3):
+def clustering (matrix, k=8):
   cls, means, steps = mlpy.kmeans(matrix, k=k, plus=True)
   print cls
-  drawplot(matrix, cls, means)
+  group=0
+  for i in range (0,k):
+    for j in cls:
+      if (j==i):
+        group+=1
+    print "In cluster %s are %s users" % (i,group)
+    group=0
+
+  #drawplot(matrix, cls, means)
 
 
 def drawplot(matrix, cls,means):
@@ -17,13 +25,16 @@ def drawplot(matrix, cls,means):
   plt.show()
 
 def getsample(path, filename):
-  return numpy.load(path+filename)
+  if os.path.exists(path):
+    return numpy.load(path+filename)
 
 if __name__ == '__main__':
 
   path = sys.argv[1]
   filename = sys.argv[2]
-  clustering(getsample(path,filename), 10)
+  array = getsample(path,filename)
+  print len(array[0])
+  clustering(array)
 
   """
   numpy.random.seed(0)

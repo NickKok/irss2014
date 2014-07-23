@@ -7,7 +7,6 @@ import nltk.tokenize
 from gensim import corpora, models, similarities
 import gensim
 from os.path import basename
-import tf_idf
 import numpy, csv
 
 
@@ -151,28 +150,18 @@ def similarityLSI(folderName,text):
     [writer.writerow(r) for r in Similarity.tolist()]
   numpy.save(folderName + modellsi + '.npy', Similarity)
 
-  """
-  tfidf = tf_idf.tfidf()
-  for i in range(0,len(fileNames)):
-    tfidf.addDocument(fileNames[i],text[i])
-
-  for j in range(0,len(fileNames)):
-    print str((tfidf.similarities(text[7]))[j][1]) + " ----- " + str((Similarity[7])[j])
-
-  print fileNames[7]
-  """
-
 def buildSearchIndex(folderName):
   T, fileNames = readTextDir(folderName)
   T2 = postProcessTexts(T)
-  LSI(T2, folderName, modellsi, fileNames)
-  similarityLSI(folderName,T2)
+  dictionary = corpora.Dictionary(T2)
+  corpus = [dictionary.doc2bow(text) for text in T2]
+  tfidf = models.TfidfModel(corpus)
+  print tfidf
+  #index = similarities.MatrixSimilarity(tfidf[corpus])
+  #LSI(T2, folderName, modellsi, fileNames)
+  #similarityLSI(folderName,T2)
 
 if __name__ == '__main__':
+  buildSearchIndex(sys.argv[1])
 
-  if sys.argv[1] == "-train":
-    buildSearchIndex(sys.argv[2])
 
-  if sys.argv[1] == "-similarity":
-    folderName = sys.argv[2]
-    similarityLSI(folderName)
