@@ -7,6 +7,37 @@ import StringIO
 import json
 from tempfile import TemporaryFile
 import random
+import matplotlib.pyplot as plt
+import mlpy
+
+
+
+def clustering (depth,numCL):
+  matrix = np.load("GroupAnnotation.npy");
+  groupsOfUsers=[]
+  cls, means, steps = mlpy.kmeans(matrix, k=numCL)
+  print cls
+  for i in range(numCL):
+      groupsOfUsers.append(np.zeros((27,27)))
+  for i in range(len(cls)):
+        groupsOfUsers[cls[i]]+=depth[i]
+  for i in range(numCL):
+        np.save("groupOfUsers%02d.npy" % i , groupsOfUsers[i])
+        with open("groupOfUsers%02d.csv" % i, 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in   groupsOfUsers[i].tolist()]
+  drawplot(matrix, cls, means)
+
+
+
+
+def drawplot(matrix, cls,means):
+  fig = plt.figure(1)
+  plot1 = plt.scatter(matrix[:,0], matrix[:,1], c=cls, alpha=0.75)
+  plot2 = plt.scatter(means[:,0], means[:,1], c=np.unique(cls), s=128, marker='d') # plot the means
+  plt.show()
+
+
 
 def readDataSimilarities(minNumOfAnnotators,path):
 
@@ -61,6 +92,38 @@ def readDataSimilarities(minNumOfAnnotators,path):
 	     depth[users.index(row[1])][Scenes.index(row[2])][Scenes.index(row[4])]-=1
 	     depth[users.index(row[1])][Scenes.index(row[4])][Scenes.index(row[2])]-=1
 
+	groupAnnotation= np.zeros((len(users),len(users)))
+	for k in range(len(users)):
+	    for x in range(len(users)):
+	            print "k,x", k, x
+	            if(k!=x):
+	              Nv=0
+	              Nu=0
+	              Nuv=0
+	              Muv=0
+	              for i in range(len(Scenes)):
+	                  for j in range(len(Scenes)):
+	                      if(i!=j):
+	                        if(depth[k][i][j]!=0):
+	                              Nu+=1
+	                        if(depth[x][i][j]!=0):
+	                            Nv+=1
+	                        if(depth[k][i][j]!=0  and depth[x][i][j]!=0):
+	                          Nuv+=1
+	                        if((depth[k][i][j]>0  and depth[x][i][j]>0) or (depth[k][i][j]<0  and depth[x][i][j]<0)):
+	                          Muv+=1
+	              print Nv/2,Nu/2
+	              print Nuv/22,Muv/2
+	              print ((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
+	              groupAnnotation[k][x]=((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
+
+
+
+
+	np.save("GroupAnnotation.npy"  ,  groupAnnotation)
+	with open("GroupAnnotation.csv", 'w') as csvfile:
+	        writer = csv.writer(csvfile)
+	        [writer.writerow(r) for r in   groupAnnotation.tolist()]
 
 
 	#count the positive and the negative values
@@ -106,7 +169,7 @@ def readDataSimilarities(minNumOfAnnotators,path):
 
 	nameswithcolor = [[] for _ in range(len(Scenes))]
 
-	print nameswithcolor
+
 	for i in range(len(Scenes)):
 	    nameswithcolor[i].append(Scenes[i])
 	    nameswithcolor[i].append(random.choice(color))
@@ -128,10 +191,13 @@ def readDataSimilarities(minNumOfAnnotators,path):
 	jsonfile.write(json)
 	jsonfile.close()
 
+    clustering(depth,3)
 	np.save('Agreement.npy', Agreement)
 	with open('Agreement.csv', 'w') as csvfile:
 	      writer = csv.writer(csvfile)
 	      [writer.writerow(r) for r in Agreement.tolist()]
+
+
 
 def statistics():
 	Agr = np.load("Agreement.npy");
@@ -141,9 +207,11 @@ def main(argv):
 	if (len(argv)==2):
 		readDataSimilarities(int(argv[1]),"")
 		statistics()
+
 	if (len(argv)==3):
-		readDataSimilarities(int(argv[1]),argv[2],)
+		readDataSimilarities(int(argv[1]),argv[2])
 		statistics()
+
 
 if __name__ == '__main__':
 	main(sys.argv)
