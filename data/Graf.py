@@ -8,6 +8,7 @@ import json
 from tempfile import TemporaryFile
 import random
 import mlpy
+import heapq
 #import matplotlib as plt
 
 
@@ -15,6 +16,7 @@ def clustering (depth,matrix, numCL):
   groupsOfUsers=[]
   cls, means, steps = mlpy.kmeans(matrix, k=numCL)
   print cls
+
   for i in range(numCL):
       groupsOfUsers.append(np.zeros((27,27)))
   for i in range(len(cls)):
@@ -99,6 +101,8 @@ for row in reader:    # generate user-speficic similarity matrices:
 
 
 groupAnnotation= np.zeros((len(users),len(users)))
+similarUsers= {}
+MaxSimilarUsers=5
 for k in range(len(users)):
     for x in range(len(users)):
             if(k!=x):
@@ -118,8 +122,24 @@ for k in range(len(users)):
                           Nuv+=1
                         if((depth[k][i][j]>0  and depth[x][i][j]>0) or (depth[k][i][j]<0  and depth[x][i][j]<0)):
                           Muv+=1
-              groupAnnotation[k][x]=((Nuv/2)*(Muv/2))/float((min(Nv/2,Nu/2)**2))
+              if(Nuv/2!=0):
+                  groupAnnotation[k][x]=(Muv/2)/float(Nuv/2)
+              else:
+                  groupAnnotation[k][x]=0
+              Names=users[k]+'-'+ users[x]
+              Name=users[x]+'-'+ users[k]
+              if Names not in similarUsers:
+                    if Name not in similarUsers:
+                        similarUsers[Names]= groupAnnotation[k][x]
 
+
+similars=heapq.nlargest(MaxSimilarUsers, similarUsers, key=similarUsers.get)
+for i in range(MaxSimilarUsers):
+    print similars[i],similarUsers[similars[i]]
+
+dissimilar=heapq.nsmallest(MaxSimilarUsers, similarUsers, key=similarUsers.get)
+for i in range(MaxSimilarUsers):
+    print dissimilar[i],similarUsers[dissimilar[i]]
 
 np.save("GroupAnnotation.npy"  ,  groupAnnotation)
 with open("GroupAnnotation.csv", 'w') as csvfile:
