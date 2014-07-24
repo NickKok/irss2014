@@ -59,21 +59,35 @@ def comparematrix(folderName,coefficient =1.2):
   fileNames,similarityMatrix,filesGTM,grundTrustMatrix = readFiles(folderName)
   recall = []
   precision = []
+  recall2 = []
+  precision2 = []
   for i in range(0,len(fileNames)):
     gtm=evaluateGTM(grundTrustMatrix[i],coefficient)
     sm=evaluateSM(similarityMatrix[i],coefficient)
     similarity = numpy.intersect1d(gtm,sm)
-    if len(gtm)!= 0 :
-      recall.append(float(len(similarity))/float(len(gtm)))
-    else :
-      recall.append(0)
-    if len(sm)!= 0 :
-      precision.append(float(len(similarity))/float(len(sm)))
-    else :
-      precision.append(0)
+    recall_precision(gtm,sm,similarity,recall,precision)
+    recall_precision_without_zeros(gtm,sm,similarity,recall2,precision2)
     #debugprint(gtm,sm,similarity,lenTextInFiles(folderName), recall[i],precision[i],fileNames[i],similarityMatrix[i],grundTrustMatrix[i],filesGTM[i])
   print "Compare Matrix (the most similar values)"
   printInfo (recall,precision)
+  print "Compare Matrix (the most similar values without empty srt)"
+  printInfo (recall2,precision2)
+
+
+def recall_precision(gtm,sm,similarity,recall,precision):
+  if len(gtm)!= 0 :
+    recall.append(float(len(similarity))/float(len(gtm)))
+  else :
+    recall.append(0)
+  if len(sm)!= 0 :
+    precision.append(float(len(similarity))/float(len(sm)))
+  else :
+    precision.append(0)
+
+def recall_precision_without_zeros(gtm,sm,similarity,recall,precision):
+  if len(gtm)!= 0 and len(sm) !=0 and len(similarity) !=0 :
+    recall.append(float(len(similarity))/float(len(gtm)))
+    precision.append(float(len(similarity))/float(len(sm)))
 
 def evaluateGTM(row, coef):
   T_value = 0
@@ -122,21 +136,9 @@ def evaluateMetric30per(row1, row2):
   x=int(len(row1)/3)
   indexGTM = row1.argsort()[-x:]
   similarity = numpy.intersect1d(indexofMatrix,indexGTM)
-  """
-  print "row 1"
-  print row1
-  print "index "
-  print indexGTM
-  print "row2"
-  print row2
-  print "index"
-  print indexofMatrix
-  print "similarity"
-  print similarity
-  """
   return (float(len(similarity))/3)
 
-def comparematrixRandom30percent(folderName,coefficient =1.2):
+def comparematrix30percent(folderName,coefficient =1.2):
   fileNames,similarityMatrix,filesGTM,grundTrustMatrix = readFiles(folderName)
   result = []
   for i in range(0,len(fileNames)):
@@ -154,14 +156,7 @@ def comparematrixRandom(folderName,coefficient =1.2):
     gtm=evaluateGTM(grundTrustMatrix[i],coefficient)
     sm=evaluateSMRandom(similarityMatrix[i],coefficient,len(gtm))
     similarity = numpy.intersect1d(gtm,sm)
-    if len(gtm)!= 0 :
-      recall.append(float(len(similarity))/float(len(gtm)))
-    else :
-      recall.append(0)
-    if len(sm)!= 0 :
-      precision.append(float(len(similarity))/float(len(sm)))
-    else :
-      precision.append(0)
+    recall_precision(gtm,sm,similarity,recall,precision)
     #debugprint(gtm,sm,similarity,helpfunction.lenTextInFiles(folderName), recall[i],precision[i],fileNames[i],similarityMatrix[i],grundTrustMatrix[i],filesGTM[i])
   print "Compare Matrix (random values from similarity text matrix)"
   printInfo (recall,precision)
@@ -173,7 +168,7 @@ if __name__ == '__main__':
     folderName = sys.argv[2]
     comparematrix(folderName)
     comparematrixRandom(folderName)
-    comparematrixRandom30percent(folderName)
+    comparematrix30percent(folderName)
   if sys.argv[1] == "-compareMatrix":
     folderName = sys.argv[2]
     comparematrix(folderName)
@@ -182,19 +177,11 @@ if __name__ == '__main__':
     comparematrixRandom(folderName)
   if sys.argv[1] == "-compareMatrix30percent":
     folderName = sys.argv[2]
-    comparematrixRandom30percent(folderName)
+    comparematrix30percent(folderName)
 
 
   """
     #lenTextinFiles = lenTextInFiles(folderName)
     #newgrundTrustMatrix = transforMatrix(fileNames,filesGTM,grundTrustMatrix)
-
     if len(gtm)!= 0 and len(sm) !=0 and len(similarity) !=0 :
-      recall.append(float(len(similarity))/float(len(gtm)))
-      precision.append(float(len(similarity))/float(len(sm)))
-      print "Recall "
-      print (float(len(similarity))/float(len(gtm)))
-      print "Precision "
-      print (float(len(similarity))/float(len(sm)))
-      print "--"*30
   """
