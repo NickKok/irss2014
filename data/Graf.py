@@ -8,14 +8,12 @@ import json
 from tempfile import TemporaryFile
 import random
 import mlpy
-import sys
-import matplotlib.pyplot as plt
+#import matplotlib as plt
 
 
 def clustering (depth,matrix, numCL):
   groupsOfUsers=[]
-
-  cls, means, steps = mlpy.kmeans(matrix, k=numCL, plus=True)
+  cls, means, steps = mlpy.kmeans(matrix, k=numCL)
   print cls
   for i in range(numCL):
       groupsOfUsers.append(np.zeros((27,27)))
@@ -26,6 +24,10 @@ def clustering (depth,matrix, numCL):
         with open("groupOfUsers%02d.csv" % i, 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in   groupsOfUsers[i].tolist()]
+
+
+
+
 
 
 
@@ -126,6 +128,7 @@ with open("GroupAnnotation.csv", 'w') as csvfile:
 
 
 clustering(depth,groupAnnotation,3)
+
 
     #count the positive and the negative values
 for i in range(len(users)):
